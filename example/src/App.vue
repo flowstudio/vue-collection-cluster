@@ -1,6 +1,11 @@
 <template>
 	<div class="app">
-		<collection-cluster ref="list" :items="items" v-bind="collection" class="scroller">
+		<collection-cluster class="scroller"
+			ref="list"
+			:items="items"
+			v-bind="collection"
+			@scrollToBottom="onScrollToBottom"
+		>
 			<div slot="row" 
 				slot-scope="{ cell, item }"
 				:key="cell.index"
@@ -29,8 +34,10 @@ export default {
 			items: Array.from(Array(1000), (item, i) => ({type: 'row', value: i})),
 		};
 	},
-	mounted() {
-		window.app = this;
+	methods: {
+		onScrollToBottom() {
+			console.log('at bottom');
+		}
 	}
 }
 </script>

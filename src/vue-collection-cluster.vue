@@ -42,6 +42,7 @@ export default {
 		}},
 		scrollPastEnd: { type: Number, default: 0, },
 		buffer: { type: Number, default: 200, },
+		threshold: { type: Number, default: 50, },
 		autoResize: { type: Boolean, default: true },
 		prerender: { type: Number, default: 0, }
 	},
@@ -91,6 +92,7 @@ export default {
 		this.height = this.$el.clientHeight;
 		
 		this.updateVisibleCells();
+		this.verifyScrollPosition();
 
 		if (this.autoResize) {
 			window.addEventListener('resize', this.onResize);
@@ -102,15 +104,19 @@ export default {
 		}
 	},
 	methods: {
-		onScroll() {
+		onScroll(event) {
 			this.scrollTop = this.$el.scrollTop;
 
 			this.updateVisibleCells();
+
+			this.$emit('scroll', event);
+			this.verifyScrollPosition();
 		},
 		onResize() {
 			this.height = this.$el.clientHeight;
 
 			this.updateVisibleCells();
+			this.verifyScrollPosition();
 		},
 		getStart() {
 			if (this.heightType === HeightTypes.static) {
@@ -223,6 +229,15 @@ export default {
 			}
 
 			this.currentEnd -= decreaseIndexBy;
+		},
+		verifyScrollPosition() {
+			if (this.scrollTop < this.threshold) {
+				this.$emit('scrollToTop');
+			}
+
+			if (this.$el.scrollHeight - this.height - this.scrollTop < this.threshold) {
+				this.$emit('scrollToBottom');
+			}
 		}
 	}
 };
