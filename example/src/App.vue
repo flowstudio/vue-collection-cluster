@@ -34,6 +34,9 @@ export default {
 			items: Array.from(Array(1000), (item, i) => ({type: 'row', value: i})),
 		};
 	},
+	mounted() {
+		window.app = this;
+	},
 	methods: {
 		onScrollToBottom() {
 			console.log('at bottom');

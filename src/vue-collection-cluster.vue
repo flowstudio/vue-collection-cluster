@@ -90,9 +90,9 @@ export default {
 		this.endHeight = 0;
 
 		this.height = this.$el.clientHeight;
+		this.scrollHeight = 0;
 		
 		this.updateVisibleCells();
-		this.verifyScrollPosition();
 
 		if (this.autoResize) {
 			window.addEventListener('resize', this.onResize);
@@ -106,17 +106,14 @@ export default {
 	methods: {
 		onScroll(event) {
 			this.scrollTop = this.$el.scrollTop;
+			this.$emit('scroll', event);
 
 			this.updateVisibleCells();
-
-			this.$emit('scroll', event);
-			this.verifyScrollPosition();
 		},
 		onResize() {
 			this.height = this.$el.clientHeight;
 
 			this.updateVisibleCells();
-			this.verifyScrollPosition();
 		},
 		getStart() {
 			if (this.heightType === HeightTypes.static) {
@@ -211,6 +208,10 @@ export default {
 
 			this.endHeight = this.inset.bottom + this.scrollPastEndSize +
 				(Math.ceil((this.length - this.currentEnd) / this.columns) * this.itemHeight);
+
+			this.scrollHeight = this.inset.top + this.inset.bottom + (Math.ceil(this.length / this.columns) * this.itemHeight) + this.scrollPastEndSize;
+
+			this.verifyScrollPosition();
 		},
 		verifyCells() {
 			let decreaseIndexBy = 0;
@@ -235,7 +236,7 @@ export default {
 				this.$emit('scrollToTop');
 			}
 
-			if (this.$el.scrollHeight - this.height - this.scrollTop < this.threshold) {
+			if (this.scrollHeight - this.height - this.scrollTop < this.threshold) {
 				this.$emit('scrollToBottom');
 			}
 		}
