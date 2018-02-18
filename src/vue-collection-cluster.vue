@@ -199,6 +199,8 @@ export default {
 					this.visibleCells.push(cell);
 				}
 			}
+
+			let changed = this.currentStart !== start || this.currentEnd !== end;
 			
 			this.currentStart = start;
 			this.currentEnd = end;
@@ -212,9 +214,14 @@ export default {
 			this.scrollHeight = this.inset.top + this.inset.bottom + (Math.ceil(this.length / this.columns) * this.itemHeight) + this.scrollPastEndSize;
 
 			this.verifyScrollPosition();
+
+			if (changed) {
+				this.$emit('cellsChange', this.visibleCells);
+			}
 		},
 		verifyCells() {
 			let decreaseIndexBy = 0;
+			let changed = false;
 
 			for (let i = 0; i < this.visibleCells.length; i++) {
 				if (decreaseIndexBy) {
@@ -226,10 +233,15 @@ export default {
 					i--;
 
 					decreaseIndexBy++;
+					changed = true;
 				}
 			}
 
 			this.currentEnd -= decreaseIndexBy;
+
+			if (changed) {
+				this.$emit('cellsChange', this.visibleCells);
+			}
 		},
 		verifyScrollPosition() {
 			if (this.scrollTop < this.threshold) {

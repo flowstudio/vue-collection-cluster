@@ -40,7 +40,7 @@ export default {
 	methods: {
 		onScrollToBottom() {
 			console.log('at bottom');
-		}
+		},
 	}
 }
 </script>
