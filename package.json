@@ -1,7 +1,7 @@
 {
 	"name": "vue-collection-cluster",
-	"version": "1.0.5",
-	"description": "A vue component that support big data list with high scroll performance.",
+	"version": "1.0.6",
+	"description": "A vue component for displaying large data sets easily with great performance.",
 	"main": "dist/vue-collection-cluster.js",
 	"files": [
 		"dist/*"
