@@ -10,7 +10,8 @@
 				slot-scope="{ cell, item }"
 				:key="cell.index"
 				class="item"
-			>Row: {{item.value}}
+			>
+				<div v-for="(line, i) in item.lines" :key="i">Row: {{ item.value }}</div>
 			</div>
 		</collection-cluster>
 
@@ -26,12 +27,17 @@ export default {
 		return {
 			collection: {
 				itemHeight: 40,
+				heightType: 'automatic',
 				inset: { 
 					top: 20,
 					bottom: 20,
 				},
 			},
-			items: Array.from(Array(1000), (item, i) => ({type: 'row', value: i})),
+			items: Array.from(Array(100), (item, i) => {
+				const lines = Math.ceil(Math.random() * 12) + 1;
+
+				return {type: 'row', value: i, lines: Array.from(Array(lines)).map(line => i)};
+			}),
 		};
 	},
 	mounted() {

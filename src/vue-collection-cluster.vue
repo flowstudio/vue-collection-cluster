@@ -88,6 +88,8 @@ export default {
 		this.currentEnd = 0;
 		this.startHeight = 0;
 		this.endHeight = 0;
+		this.heightInvalidAfter = 0;
+		this.accumulatorProp = Symbol();
 
 		this.height = this.$el.clientHeight;
 		this.scrollHeight = 0;
@@ -115,45 +117,87 @@ export default {
 
 			this.updateVisibleCells();
 		},
-		getStart() {
-			if (this.heightType === HeightTypes.static) {
-				let y = this.scrollTop - this.buffer;
-				y = y < 0 ? 0 : y;
-				
-				let index = Math.floor(y / this.itemHeight) * this.columns;
-				
-				if (index > this.length) {
-					index = this.length;
-				}
-				
-				return index;
-			} else {
-				// TODO: implement
-
-				return 0;
+		invalidateHeightAfter(index) {
+			index < 0 && (index = 0);
+			
+			if (index < this.heightInvalidAfter) {
+				this.heightInvalidAfter = index;
 			}
 		},
-		getEnd() {
-			if (this.heightType === HeightTypes.static) {
-				let index = Math.ceil((this.scrollTop + this.height + this.buffer) / this.itemHeight) * this.columns;
-				
-				if (index > this.length) {
-					index = this.length;
-				}
-				
-				return index;
-			} else {
-				// TODO: implement
-
-				return 0;
+		getStartEnd() {
+			if (!this.length) {
+				return {start: 0, end: 0};
 			}
+
+			let y = this.scrollTop - this.inset.top - this.buffer;
+			y < 0 && (y = 0);
+
+			let endY = this.scrollTop + this.inset.top + this.height + this.buffer;
+
+			if (this.heightType === HeightTypes.static) {		
+				let start = Math.floor(y / this.itemHeight) * this.columns;
+
+				start < 0 && (start = 0);
+				start > this.length && (start = this.length);
+
+				let end = Math.ceil(endY / this.itemHeight) * this.columns;
+
+				end > this.length && (end = this.length);
+				
+				return {start, end};
+			}
+			
+			// dynamic/automatic height
+			// calculate approx start
+			let start = Math.floor(y / this.itemHeight);
+			start > this.heightInvalidAfter && (start = this.heightInvalidAfter);
+
+			while (start > 0 && (
+				this.items[start][this.accumulatorProp] === undefined ||
+				this.items[start][this.accumulatorProp] > y
+			)) {
+				start--;
+			}
+
+			let accumulator = this.items[start][this.accumulatorProp] || 0;
+
+			while (true) {
+				let item = this.items[start];
+				let height = item[this.heightField] || this.itemHeight;
+
+				item[this.accumulatorProp] = accumulator;
+				accumulator += height;
+
+				if (accumulator > y || start >= this.length-1) {
+					break;
+				}
+
+				start++;
+			}
+
+			let end = start;
+
+			while (end < this.length-1 && accumulator < endY) {
+				let item = this.items[++end];
+				let height = item[this.heightField] || this.itemHeight;
+
+				item[this.accumulatorProp] = accumulator;
+				accumulator += height;
+			}
+
+			if (end > this.heightInvalidAfter) {
+				this.heightInvalidAfter = end;
+			}
+
+			end++;
+
+			return {start: start, end: end};
 		},
 		updateVisibleCells() {
-			let start = this.getStart();
-			let end = this.getEnd();
+			const {start, end} = this.getStartEnd();
 			let i;
 			let cell;
-			
+
 			//delete cells at the benning
 			let deleteEnd = start < this.currentEnd ? start : this.currentEnd;
 			
@@ -205,17 +249,13 @@ export default {
 			this.currentStart = start;
 			this.currentEnd = end;
 			
-			this.startHeight = this.inset.top +
-				((this.currentStart / this.columns) * this.itemHeight);
-
-			this.endHeight = this.inset.bottom + this.scrollPastEndSize +
-				(Math.ceil((this.length - this.currentEnd) / this.columns) * this.itemHeight);
-
-			this.scrollHeight = this.inset.top + this.inset.bottom + (Math.ceil(this.length / this.columns) * this.itemHeight) + this.scrollPastEndSize;
-
+			this.updateSizes();
 			this.verifyScrollPosition();
 
 			if (changed) {
+				this.heightType === HeightTypes.automatic && this.$nextTick(() => {
+					this.updateHeights();
+				});
 				this.$emit('cellsChange', this.visibleCells);
 			}
 		},
@@ -229,6 +269,12 @@ export default {
 				}
 
 				if (this.items.indexOf(this.visibleCells[i].item) !== this.visibleCells[i].index) {
+					if (i === 0) {
+						this.invalidateHeightAfter(0);
+					} else {
+						this.invalidateHeightAfter(this.currentStart + i);
+					}
+
 					this.visibleCells.splice(i, 1);
 					i--;
 
@@ -239,19 +285,98 @@ export default {
 
 			this.currentEnd -= decreaseIndexBy;
 
+			if (this.heightInvalidAfter >= this.length) {
+				this.invalidateHeightAfter(this.length-1);
+			}
+
 			if (changed) {
+				this.heightType === HeightTypes.automatic && this.$nextTick(() => {
+					this.updateHeights();
+				});
+
 				this.$emit('cellsChange', this.visibleCells);
 			}
 		},
 		verifyScrollPosition() {
-			if (this.scrollTop < this.threshold) {
+			if (this.scrollTop - this.inset.top < this.threshold) {
 				this.$emit('scrollToTop');
 			}
 
-			if (this.scrollHeight - this.height - this.scrollTop < this.threshold) {
+			if (this.scrollHeight - this.height - this.scrollTop - this.inset.bottom < this.threshold) {
 				this.$emit('scrollToBottom');
 			}
-		}
+		},
+		updateSizes() {
+			if (this.heightType === HeightTypes.static) {
+				this.startHeight = this.inset.top +
+				((this.currentStart / this.columns) * this.itemHeight);
+
+				this.endHeight = this.inset.bottom + this.scrollPastEndSize +
+				(Math.ceil((this.length - this.currentEnd) / this.columns) * this.itemHeight);
+
+				this.scrollHeight = this.inset.top + this.inset.bottom + (Math.ceil(this.length / this.columns) * this.itemHeight) + this.scrollPastEndSize;
+			} else {
+				let startHeight = this.inset.top;
+				let endHeight = this.inset.bottom + this.scrollPastEndSize;
+				let scrollHeight = endHeight + startHeight;
+
+				const startItem = this.items[this.currentStart];
+
+				if (startItem) {
+					startHeight += startItem[this.accumulatorProp];
+				}
+
+				const lastAccumulatedItem = this.items[this.heightInvalidAfter];
+
+				if (lastAccumulatedItem) {
+					let totalHeight = lastAccumulatedItem[this.accumulatorProp];
+					totalHeight += lastAccumulatedItem[this.heightField] || this.itemHeight;
+
+					totalHeight += (this.length - 1 - this.heightInvalidAfter) * this.itemHeight;
+
+					let endItem = this.items[this.currentEnd-1];
+
+					endHeight += totalHeight - endItem[this.accumulatorProp] - (endItem[this.heightField] || this.itemHeight);
+					scrollHeight += totalHeight;
+				}
+
+				this.startHeight = startHeight;
+				this.endHeight = endHeight;
+				this.scrollHeight = scrollHeight;
+			}
+		},
+		updateHeights() {
+			let changed = false;
+
+			for (let i = this.visibleCells.length-1; i >= 0; i--) {
+				let cell = this.visibleCells[i];
+				let el = this.$el.children[1 + i];
+				let height = el.clientHeight;
+
+				if (cell.item[this.heightField] === height) {
+					continue;
+				}
+
+				cell.item[this.heightField] = height;
+				changed = true;
+
+				this.invalidateHeightAfter(this.currentStart + i);
+			}
+
+			if (changed) {
+				this.updateVisibleCells();
+			}
+		},
+		resizeItem(index) {
+			if (this.heightType === HeightTypes.dynamic) {
+				this.invalidateHeightAfter(index);
+				this.updateVisibleCells();
+			} else if (this.heightType === HeightTypes.automatic) {
+				if (index >= this.currentStart && index < this.currentEnd) {
+					this.updateHeights();
+				}
+			}
+		},
 	}
 };
 </script>
