@@ -377,6 +377,21 @@ export default {
 				}
 			}
 		},
+		scrollToBottom() {
+			const bottomPosition = this.$el.scrollHeight - this.$el.clientHeight;
+
+			if (this.$el.scrollTop === bottomPosition) {
+				return;
+			}
+			
+			this.$el.scrollTop = bottomPosition;
+			this.scrollTop = this.$el.scrollTop;
+			this.updateVisibleCells();
+
+			this.$nextTick(() => {
+				this.scrollToBottom();
+			});
+		}
 	}
 };
 </script>
