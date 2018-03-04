@@ -25,6 +25,14 @@ const HeightTypes = {
 	automatic: 'automatic',
 };
 
+const ScrollPositions = {
+	default: 'default',
+	top: 'top',
+	bottom: 'bottom',
+	topInset: 'topInset',
+	bottomInset: 'bottomInset',
+};
+
 export default {
 	props: {
 		items: { type: Array, required: true, },
@@ -297,12 +305,18 @@ export default {
 				this.$emit('cellsChange', this.visibleCells);
 			}
 		},
+		isAtTop() {
+			return this.scrollTop - this.inset.top < this.threshold;
+		},
+		isAtBottom() {
+			return this.scrollHeight - this.height - this.scrollTop - this.inset.bottom < this.threshold;
+		},
 		verifyScrollPosition() {
-			if (this.scrollTop - this.inset.top < this.threshold) {
+			if (this.isAtTop()) {
 				this.$emit('scrollToTop');
 			}
 
-			if (this.scrollHeight - this.height - this.scrollTop - this.inset.bottom < this.threshold) {
+			if (this.isAtBottom()) {
 				this.$emit('scrollToBottom');
 			}
 		},
@@ -368,6 +382,10 @@ export default {
 			}
 		},
 		resizeItem(index) {
+			if (index < 0 || index >= this.length) {
+				throw new Error('Invalid index.');
+			}
+
 			if (this.heightType === HeightTypes.dynamic) {
 				this.invalidateHeightAfter(index);
 				this.updateVisibleCells();
@@ -377,16 +395,73 @@ export default {
 				}
 			}
 		},
-		scrollToBottom() {
-			const bottomPosition = this.$el.scrollHeight - this.$el.clientHeight;
-
-			if (this.$el.scrollTop === bottomPosition) {
-				return;
-			}
-			
-			this.$el.scrollTop = bottomPosition;
+		scrollToPosition(y) {
+			this.$el.scrollTop = y;
 			this.scrollTop = this.$el.scrollTop;
 			this.updateVisibleCells();
+		},
+		scrollTo(index, position) {
+			if (index < 0 || index >= this.length) {
+				throw new Error('Invalid index.');
+			}
+
+			position = position || ScrollPositions.default;
+
+			let lastCalculatedIndex = Math.min(index, this.heightInvalidAfter);
+			let y = (this.items[lastCalculatedIndex][this.accumulatorProp] || 0) + ((index - lastCalculatedIndex) * this.itemHeight);
+			let height = this.items[index][this.heightField] || this.itemHeight;
+			let isOversize = height > this.height;
+			let endY = y + height;
+
+			let scrollToY;
+
+			if (position !== ScrollPositions.topInset && position !== ScrollPositions.bottomInset) {
+				y += this.inset.top;
+				endY += this.inset.top;
+			} else {
+				endY += this.inset.top + this.inset.bottom;
+			}
+
+			switch (position) {
+				case ScrollPositions.default:
+					if (endY > this.scrollTop + this.height && !isOversize) {
+						scrollToY = Math.max(0, endY - this.height);
+						position = ScrollPositions.bottom;
+					} else if (y < this.scrollTop || (isOversize && y > this.scrollTop)) {
+						scrollToY = y;
+						position = ScrollPositions.top;
+					}
+				break;
+
+				case ScrollPositions.top:
+				case ScrollPositions.topInset:
+					scrollToY = Math.max(0, Math.min(y, this.scrollHeight - this.height));
+				break;
+
+				case ScrollPositions.bottom:
+				case ScrollPositions.bottomInset:
+					scrollToY = Math.max(0, Math.min(endY - this.height, this.scrollHeight - this.height));
+				break;
+			}
+
+			if (typeof scrollToY === 'undefined' || scrollToY === this.scrollTop) {
+				return;
+			}
+
+			this.scrollToPosition(scrollToY);
+
+			this.$nextTick(() => {
+				this.scrollTo(index, position);
+			});
+		},
+		scrollToBottom() {
+			const bottomPosition = this.scrollHeight - this.height;
+
+			if (this.scrollTop === bottomPosition || this.scrollHeight < this.height) {
+				return;
+			}
+
+			this.scrollToPosition(bottomPosition);
 
 			this.$nextTick(() => {
 				this.scrollToBottom();

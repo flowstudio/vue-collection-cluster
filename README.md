@@ -150,6 +150,34 @@ Emitted when visible/rendered cells change. There is one argument with list of c
 
 ### scrollToBottom
 
+## Methods
+
+### isAtTop()
+Return: `Boolean`
+
+Is list at the top?
+
+### isAtBottom()
+Return: `Boolean`
+
+Is list at the bottom?
+
+### scrollTo(index, position)
+index: `Int`, position: `default|top|bottom|topInset|bottomInset'`
+
+Scrolls to specified index at position.
+
+### scrollToBottom()
+Scrolls to bottom of list.
+
+### resizeItem(index)
+index: `Int`
+
+Should be called whenever item with dynamic height did change height.
+
+
+---
+
 ## Example
 
 ```html

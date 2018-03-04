@@ -4,6 +4,7 @@
 			ref="list"
 			:items="items"
 			v-bind="collection"
+			@scrollToTop="onScrollToTop"
 			@scrollToBottom="onScrollToBottom"
 		>
 			<div slot="row" 
@@ -44,6 +45,9 @@ export default {
 		window.app = this;
 	},
 	methods: {
+		onScrollToTop() {
+			console.log('at top');
+		},
 		onScrollToBottom() {
 			console.log('at bottom');
 		},
