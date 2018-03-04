@@ -159,7 +159,7 @@ export default {
 				start--;
 			}
 
-			let accumulator = this.items[start][this.accumulatorProp] || 0;
+			let accumulator = start === 0 ? 0 : this.items[start][this.accumulatorProp] || 0;
 
 			while (true) {
 				let item = this.items[start];
