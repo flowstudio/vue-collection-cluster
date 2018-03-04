@@ -26,7 +26,7 @@ npm install --save vue-collection-cluster
 ```javascript
 import CollectionCluster from 'vue-collection-cluster';
 
-export {
+export default {
 	components: {CollectionCluster},
 	data() {
 		return {
@@ -149,3 +149,75 @@ Emitted when visible/rendered cells change. There is one argument with list of c
 ### scrollToTop
 
 ### scrollToBottom
+
+## Example
+
+```html
+<template>
+	<collection-cluster
+		class="scroller"
+		v-bind="collection"
+		:items="items"
+	>
+		<Letter slot="letter" 
+			slot-scope="{ cell, item }"
+			:key="cell.index"
+			:item="item"
+		/>
+
+		<Name slot="name" 
+			slot-scope="{ cell, item }"
+			:key="cell.index"
+			:item="item"
+		/>
+	</collection-cluster>
+</template>
+
+<script>
+import Letter from './Letter';
+import Name from './Name';
+
+export default {
+	components: {Letter, Name},
+	data() {
+		return {
+			collection: {
+				heightType: 'automatic',
+				itemHeight: 50,
+			},
+			items: [
+				{ type: 'letter', value: 'J' },
+				{ type: 'name', value: { name: 'Jack' } },
+				{ type: 'name', value: { name: 'John' } },
+			]
+		};
+	}
+};
+</script>
+```
+
+`Letter.vue` source:
+```html
+<template>
+  <div class="letter">{{item.value}}</div>
+</template>
+
+<script>
+export default {
+  props: ['item'],
+};
+</script>
+```
+
+`Name.vue` source:
+```html
+<template>
+  <div class="name">{{item.value.name}}</div>
+</template>
+
+<script>
+export default {
+  props: ['item'],
+};
+</script>
+```
