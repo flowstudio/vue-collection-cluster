@@ -1,6 +1,6 @@
 {
 	"name": "vue-collection-cluster",
-	"version": "1.0.8",
+	"version": "1.0.9",
 	"description": "A vue component for displaying large data sets easily with great performance.",
 	"main": "dist/vue-collection-cluster.js",
 	"files": [
