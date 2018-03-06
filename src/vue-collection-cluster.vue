@@ -33,6 +33,13 @@ const ScrollPositions = {
 	bottomInset: 'bottomInset',
 };
 
+class StoredScrollPosition {
+	constructor(item, offset) {
+		this.item = item;
+		this.offset = offset;
+	}
+}
+
 export default {
 	props: {
 		items: { type: Array, required: true, },
@@ -395,10 +402,55 @@ export default {
 				}
 			}
 		},
+		getItemPosition(index) {
+			if (index < 0 || index >= this.length) {
+				throw new Error('Invalid index.');
+			}
+
+			if (this.heightType === HeightTypes.static) {
+				return index * this.itemHeight;
+			} else {
+				let lastCalculatedIndex = Math.min(index, this.heightInvalidAfter);
+				return (this.items[lastCalculatedIndex][this.accumulatorProp] || 0) + ((index - lastCalculatedIndex) * this.itemHeight);
+			}
+		},
 		scrollToPosition(y) {
 			this.$el.scrollTop = y;
 			this.scrollTop = this.$el.scrollTop;
 			this.updateVisibleCells();
+		},
+		storeScrollPosition(index = this.currentStart) {
+			if (index < 0 || index >= this.length) {
+				throw new Error('Invalid index.');
+			}
+
+			return new StoredScrollPosition(this.items[index], this.getItemPosition(index) - this.scrollTop);
+		},
+		restoreScrollPosition(position) {
+			if (!(position instanceof StoredScrollPosition)) {
+				throw new Error('Invalid position.');
+			}
+
+			const index = this.items.indexOf(position.item);
+
+			if (index === -1) {
+				return;
+			}
+
+			let y = this.getItemPosition(index) - position.offset;
+			const maxY = Math.max(0, this.scrollHeight - this.height);
+			y < 0 && (y = 0);
+			y > maxY && (y = maxY);
+
+			if (this.scrollTop === y) {
+				return;
+			}
+
+			this.scrollToPosition(y);
+
+			this.$nextTick(() => {
+				this.restoreScrollPosition(position);
+			});
 		},
 		scrollTo(index, position) {
 			if (index < 0 || index >= this.length) {
@@ -407,9 +459,8 @@ export default {
 
 			position = position || ScrollPositions.default;
 
-			let lastCalculatedIndex = Math.min(index, this.heightInvalidAfter);
-			let y = (this.items[lastCalculatedIndex][this.accumulatorProp] || 0) + ((index - lastCalculatedIndex) * this.itemHeight);
-			let height = this.items[index][this.heightField] || this.itemHeight;
+			let y = this.getItemPosition(index);
+			let height = this.heightType === HeightTypes.static ? this.itemHeight :  this.items[index][this.heightField] || this.itemHeight;
 			let isOversize = height > this.height;
 			let endY = y + height;
 
