@@ -104,6 +104,7 @@ export default {
 		this.startHeight = 0;
 		this.endHeight = 0;
 		this.heightInvalidAfter = 0;
+		this.heightUpdateCounter = 0;
 		this.accumulatorProp = Symbol();
 
 		this.height = this.$el.clientHeight;
@@ -268,9 +269,7 @@ export default {
 			this.verifyScrollPosition();
 
 			if (changed) {
-				this.heightType === HeightTypes.automatic && this.$nextTick(() => {
-					this.updateHeights();
-				});
+				this.heightType === HeightTypes.automatic && this.scheduleUpdateHeights();
 				this.$emit('cellsChange', this.visibleCells);
 			}
 		},
@@ -305,9 +304,7 @@ export default {
 			}
 
 			if (changed) {
-				this.heightType === HeightTypes.automatic && this.$nextTick(() => {
-					this.updateHeights();
-				});
+				this.heightType === HeightTypes.automatic && this.scheduleUpdateHeights();
 
 				this.$emit('cellsChange', this.visibleCells);
 			}
@@ -366,6 +363,14 @@ export default {
 				this.scrollHeight = scrollHeight;
 			}
 		},
+		scheduleUpdateHeights() {
+			const counter = ++this.heightUpdateCounter;
+
+			this.$nextTick(() => {
+				// only update heights once after render, to avoid conflicts
+				counter === this.heightUpdateCounter && this.updateHeights();
+			});
+		},
 		updateHeights() {
 			let changed = false;
 
@@ -398,7 +403,7 @@ export default {
 				this.updateVisibleCells();
 			} else if (this.heightType === HeightTypes.automatic) {
 				if (index >= this.currentStart && index < this.currentEnd) {
-					this.updateHeights();
+					this.scheduleUpdateHeights();
 				}
 			}
 		},
