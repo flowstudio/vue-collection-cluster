@@ -17,7 +17,7 @@ npm install --save vue-collection-cluster
 - [Basic](https://jsfiddle.net/adamcikado/jv694b8c/)
 - [Multiple columns](https://jsfiddle.net/adamcikado/eknhg2du/)
 - [Automatic/dynamic height](https://jsfiddle.net/adamcikado/v9grvxvq/)
-- [Multiple splits](https://jsfiddle.net/adamcikado/q6c7xteu/)
+- [Multiple slots](https://jsfiddle.net/adamcikado/q6c7xteu/)
 
 ## Usage
 
