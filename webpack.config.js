@@ -9,6 +9,7 @@ module.exports = {
 		filename: 'vue-collection-cluster.js',
 		library: 'VueCollectionCluster',
 		libraryTarget: 'umd',
+		umdNamedDefine: true,
 	},
 	resolve: {
 		extensions: ['.js', '.vue'],
