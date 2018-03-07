@@ -12,6 +12,13 @@ A vue component for displaying large data sets easily with great performance.
 npm install --save vue-collection-cluster
 ```
 
+## Demo
+
+- [Basic](https://jsfiddle.net/adamcikado/jv694b8c/)
+- [Multiple columns](https://jsfiddle.net/adamcikado/eknhg2du/)
+- [Automatic/dynamic height](https://jsfiddle.net/adamcikado/v9grvxvq/)
+- [Multiple splits](https://jsfiddle.net/adamcikado/q6c7xteu/)
+
 ## Usage
 
 ```html
