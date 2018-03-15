@@ -1,6 +1,7 @@
 # vue-collection-cluster
 
-A vue component for displaying large data sets easily with great performance.
+A vue component for displaying large data sets. Render 100000+ rows/columns easily with great performance.
+
 
 [![npm](https://img.shields.io/npm/v/vue-collection-cluster.svg)
 ![npm](https://img.shields.io/npm/dm/vue-collection-cluster.svg)](https://www.npmjs.com/package/vue-collection-cluster)
