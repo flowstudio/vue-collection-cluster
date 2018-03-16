@@ -6,12 +6,7 @@ A vue component for displaying large data sets. Render 100000+ rows/columns easi
 [![npm](https://img.shields.io/npm/v/vue-collection-cluster.svg)
 ![npm](https://img.shields.io/npm/dm/vue-collection-cluster.svg)](https://www.npmjs.com/package/vue-collection-cluster)
 [![vue2](https://img.shields.io/badge/vue-2.x-brightgreen.svg)](https://vuejs.org/)
-
-## Installation
-
-```bash
-npm install --save vue-collection-cluster
-```
+[![license](https://img.shields.io/npm/l/express.svg)]()
 
 ## Demo
 
@@ -19,6 +14,12 @@ npm install --save vue-collection-cluster
 - [Multiple columns](https://jsfiddle.net/adamcikado/eknhg2du/)
 - [Automatic/dynamic height](https://jsfiddle.net/adamcikado/v9grvxvq/)
 - [Multiple slots](https://jsfiddle.net/adamcikado/q6c7xteu/)
+
+## Installation
+
+```bash
+npm install --save vue-collection-cluster
+```
 
 ## Usage
 
@@ -263,3 +264,5 @@ export default {
 ## License
 
 [MIT](http://opensource.org/licenses/MIT)
+
+Copyright (c) 2018 Andrej Adamcik
