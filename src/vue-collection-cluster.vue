@@ -11,6 +11,8 @@
 			:item="cell.item"
 		/>
 
+		<slot name="empty" v-if="!items.length" />
+
 		<div class="collection-space"
 			ref="end"
 			:style="{height: endHeight + 'px', width: '100%'}"
