@@ -123,6 +123,9 @@ export default {
 			window.removeEventListener('resize', this.onResize);
 		}
 	},
+	activated() {
+		this.onResize();
+	},
 	methods: {
 		onScroll(event) {
 			this.scrollTop = this.$el.scrollTop;
